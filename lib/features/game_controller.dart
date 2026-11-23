@@ -94,8 +94,26 @@ class GameController extends StateNotifier<GameState> {
     state.settings.paused = false;
     laporanBaru.value = null;
     _sesiAktif = true;
+    _waktuPeringatanBahan = 0;
+    _waktuPeringatanEtalase = 0;
+    _isiWarungAwal();
     _emit();
   }
+
+  /// Saat warung dibuka, langsung ada beberapa pelanggan agar tidak terasa
+  /// kosong. Mereka adalah pengunjung pagi biasa, bukan "bonus".
+  void _isiWarungAwal() {
+    final jumlah = 2 + _random.nextInt(2); // 2-3 orang
+    for (var i = 0; i < jumlah; i++) {
+      _datangkanPelanggan();
+    }
+    _resetJedaKedatangan();
+  }
+
+  /// Timer sejak pelanggan terakhir datang (menit game).
+  double _jedaKedatangan = 0;
+
+  void _resetJedaKedatangan() => _jedaKedatangan = 0;
 
   /// Muat state dari save (Continue).
   void muat(GameState tersimpan) {
@@ -103,6 +121,7 @@ class GameController extends StateNotifier<GameState> {
     state.settings.paused = true; // pemain menekan Play setelah masuk.
     laporanBaru.value = null;
     _sesiAktif = true;
+    if (state.customers.isEmpty) _isiWarungAwal();
     _emit();
   }
 
@@ -120,6 +139,8 @@ class GameController extends StateNotifier<GameState> {
     _updatePelanggan(menit);
     _economy.prosesMasak(state, menit);
     _autoMasakKaryawan(menit);
+    _isiDaruratEtalase();
+    _peringatanEtalase(menit);
     _prosesKesegaran(menit);
 
     // Notifikasi UI dibatasi 4x/detik agar widget tidak rebuild tiap frame.
@@ -187,6 +208,7 @@ class GameController extends StateNotifier<GameState> {
     state.dailyLost = 0;
     state.dailySpoiled = 0;
     _economy.prosesBahanKedaluwarsa(state);
+    _isiWarungAwal(); // pembeli pagi sudah menunggu saat warung buka
     unawaited(simpanSekarang());
     _emit();
   }
@@ -218,9 +240,18 @@ class GameController extends StateNotifier<GameState> {
 
   void _updatePelanggan(double menit) {
     // 1) Spawn pelanggan baru.
+    _jedaKedatangan += menit;
     final peluang = kPeluangDatangPerMenit * menit * _faktorJam;
-    if (state.customers.length < kBatasPelangganAktif && _random.nextDouble() < peluang) {
+    final sudahCukupLama = _jedaKedatangan >= kJedaMaksKedatangan / _faktorJam;
+    final adaRuang = state.customers.length < kBatasPelangganAktif;
+    if (adaRuang && (_random.nextDouble() < peluang || sudahCukupLama)) {
+      // Saat jam sepi tetap ada tamu sesekali, tapi tidak berdesakan.
       _datangkanPelanggan();
+      _resetJedaKedatangan();
+      // Peluang tambahan saat ramai (mis. jam makan siang berbonus 1 tamu).
+      if (_faktorJam > 1.8 && _random.nextDouble() < 0.45) {
+        _datangkanPelanggan();
+      }
     }
 
     // 2) Majukan tiap pelanggan.
@@ -543,6 +574,56 @@ class GameController extends StateNotifier<GameState> {
 
   double _autoCooldown = 0;
 
+  /// Saat etalase hampir kosong dan bahan tersedia, pemilik warung (pemain)
+  /// otomatis memasak 2 porsi menu termurah yang bahannya ada. Ini menjaga
+  /// pelanggan tetap terlayani tanpa harus membuka panel terus-menerus.
+  void _isiDaruratEtalase() {
+    if (state.cookingQueue.isNotEmpty) return;
+    final porsiKritis = state.dishCount <= 2;
+    if (!porsiKritis) return;
+
+    MenuItem? pilihan;
+    var hargaTermurah = 1 << 30;
+    for (final m in kMenu) {
+      if (state.level < m.unlockLevel) continue;
+      final cukup = m.recipe.entries.every(
+        (e) => state.stockOf(e.key) >= e.value * 2,
+      );
+      if (!cukup) continue;
+      if (state.priceOf(m.id) < hargaTermurah) {
+        hargaTermurah = state.priceOf(m.id);
+        pilihan = m;
+      }
+    }
+    if (pilihan != null) {
+      _economy.mulaiMasak(state, pilihan.id, 2);
+    } else if (state.dishBatches.isEmpty) {
+      // Bahan habis total: beri tahu pemain, sekali saja per beberapa menit.
+      if (_waktuPeringatanBahan <= 0) {
+        _waktuPeringatanBahan = 120; // menit game
+        _toast('⚠️ Bahan habis! Belanja di panel Stok agar bisa memasak.');
+      }
+    }
+  }
+
+  double _waktuPeringatanBahan = 0;
+
+  /// Pengingat ketika etalase mulai kosong.
+  double _waktuPeringatanEtalase = 0;
+  void _peringatanEtalase(double menit) {
+    if (_waktuPeringatanBahan > 0) _waktuPeringatanBahan -= menit;
+    if (state.dishCount > 4) {
+      _waktuPeringatanEtalase = 0;
+      return;
+    }
+    if (_waktuPeringatanEtalase > 0) {
+      _waktuPeringatanEtalase -= menit;
+      return;
+    }
+    _waktuPeringatanEtalase = 90; // beri tahu tiap 90 menit game
+    _toast('Etalase hampir kosong — masak menu lewat panel Menu & Harga.');
+  }
+
   /// Karyawan mendapat XP saat warung melayani pelanggan.
   void _akumulasiKaryawan() {
     for (final e in state.employees) {
@@ -683,6 +764,11 @@ class GameController extends StateNotifier<GameState> {
   void toggleSuara() {
     state.settings.soundOn = !state.settings.soundOn;
     AudioSvc.instance.aktif = state.settings.soundOn;
+    if (state.settings.soundOn) {
+      unawaited(AudioSvc.instance.lanjutkanMusik());
+    } else {
+      unawaited(AudioSvc.instance.hentikanMusik());
+    }
     _emit();
   }
 

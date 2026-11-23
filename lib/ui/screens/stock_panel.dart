@@ -5,9 +5,11 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/format.dart';
+import '../../data/models/game_state.dart';
 import '../../data/models/ingredient.dart';
 import '../../data/models/menu_item.dart';
 import '../../features/game_controller.dart';
+import '../panel_route.dart';
 import '../theme.dart';
 import '../widgets.dart';
 
@@ -32,7 +34,7 @@ class _StockPanelState extends ConsumerState<StockPanel> {
           icon: Icons.inventory_2_rounded,
           title: 'Stok & Dapur',
           subtitle: 'Belanja bahan, pantau kesegaran',
-          onClose: () => Navigator.of(context).pop(),
+          onClose: () => tutupPanel(context),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -65,24 +67,34 @@ class _StockPanelState extends ConsumerState<StockPanel> {
         if (_tab == 0)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14),
-            child: Row(
+            child: Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 const Text('Jumlah beli:', style: kWartegLabel),
-                const SizedBox(width: 8),
                 for (final q in [1, 5, 10, 20])
-                  Padding(
-                    padding: const EdgeInsets.only(right: 6),
-                    child: ChoiceChip(
-                      label: Text('$q'),
-                      selected: _qtyBeli == q,
-                      visualDensity: VisualDensity.compact,
-                      onSelected: (_) => setState(() => _qtyBeli = q),
+                  ChoiceChip(
+                    label: Text('$q'),
+                    selected: _qtyBeli == q,
+                    visualDensity: VisualDensity.compact,
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    onSelected: (_) => setState(() => _qtyBeli = q),
+                  ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: WartegColors.green.withValues(alpha: 0.10),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    rupiah(state.money),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w900,
+                      color: WartegColors.green,
                     ),
                   ),
-                const Spacer(),
-                Text(
-                  rupiah(state.money),
-                  style: const TextStyle(fontWeight: FontWeight.w900, color: WartegColors.green),
                 ),
               ],
             ),
@@ -95,7 +107,7 @@ class _StockPanelState extends ConsumerState<StockPanel> {
     );
   }
 
-  Widget _daftarBelanja(state) {
+  Widget _daftarBelanja(GameState state) {
     final controller = ref.read(gameControllerProvider.notifier);
     final bahan = daftarBahan;
     return ListView.builder(
@@ -108,8 +120,10 @@ class _StockPanelState extends ConsumerState<StockPanel> {
         final total = b.buyPrice * _qtyBeli;
         final mampu = state.money >= total;
         // Batch terdekat kedaluwarsa.
-        final batches = state.ingredientBatches.where((x) => x.ingredientId == b.id).toList()
-          ..sort((a, c) => a.expiryDay.compareTo(c.expiryDay));
+        final batches = state.ingredientBatches
+            .where((x) => x.ingredientId == b.id)
+            .toList()
+          ..sort((IngredientBatch a, IngredientBatch c) => a.expiryDay.compareTo(c.expiryDay));
 
         return Card(
           margin: const EdgeInsets.symmetric(vertical: 4),
@@ -175,7 +189,7 @@ class _StockPanelState extends ConsumerState<StockPanel> {
     );
   }
 
-  Widget _antreanMasak(state) {
+  Widget _antreanMasak(GameState state) {
     if (state.cookingQueue.isEmpty) {
       return const Padding(
         padding: EdgeInsets.symmetric(vertical: 14),
@@ -219,7 +233,7 @@ class _StockPanelState extends ConsumerState<StockPanel> {
     );
   }
 
-  Widget _daftarEtalase(state) {
+  Widget _daftarEtalase(GameState state) {
     final dish = state.dishBatches;
     if (dish.isEmpty) {
       return const Center(

@@ -5,6 +5,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../features/game_controller.dart';
+import '../panel_route.dart';
 import '../theme.dart';
 import '../widgets.dart';
 
@@ -40,14 +41,14 @@ class PengaturanSheet extends ConsumerWidget {
             icon: Icons.settings_rounded,
             title: 'Pengaturan',
             subtitle: 'Sesuaikan pengalaman bermain',
-            onClose: () => Navigator.of(context).pop(),
+            onClose: () => tutupPanel(context),
           ),
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
           value: state.settings.soundOn,
           onChanged: (_) => controller.toggleSuara(),
           title: const Text('Suara & Musik', style: TextStyle(fontWeight: FontWeight.w700)),
-          subtitle: const Text('Efek suara sederhana saat bermain'),
+          subtitle: const Text('Musik warung & efek suara'),
           secondary: Icon(
             state.settings.soundOn ? Icons.volume_up_rounded : Icons.volume_off_rounded,
             color: WartegColors.brickDark,

@@ -7,7 +7,7 @@ void main() {
   const economy = EconomyService();
 
   test('kesegaran turun sesuai waktu berjalan', () {
-    final state = GameState.newGame();
+    final state = GameState.newGame()..dishBatches.clear();
     state.dishBatches.add(DishBatch(menuId: 'tempe_goreng', qty: 2, freshness: 100));
 
     economy.prosesKesegaran(state, 1); // 1 jam
@@ -17,7 +17,7 @@ void main() {
   });
 
   test('makanan basi terbuang dan tercatat sebagai kerugian', () {
-    final state = GameState.newGame();
+    final state = GameState.newGame()..dishBatches.clear();
     state.dishBatches.add(DishBatch(menuId: 'tempe_goreng', qty: 3, freshness: 10));
 
     final dibuang = economy.prosesKesegaran(state, 1); // turun 20 -> -10
@@ -29,8 +29,9 @@ void main() {
   });
 
   test('kulkas & etalase memperlambat penurunan kesegaran', () {
-    final biasa = GameState.newGame();
+    final biasa = GameState.newGame()..dishBatches.clear();
     final dingin = GameState.newGame()
+      ..dishBatches.clear()
       ..upgrades['kulkas'] = 2
       ..upgrades['etalase'] = 2;
 

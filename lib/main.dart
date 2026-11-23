@@ -3,6 +3,7 @@
 /// Inisialisasi Hive (penyimpanan save), tema, lalu jalankan app Riverpod.
 library;
 
+import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -16,13 +17,21 @@ import 'ui/theme.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Game didesain untuk orientasi mendatar (landscape) di Android.
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.landscapeLeft,
+    DeviceOrientation.landscapeRight,
+  ]);
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+
   // Hive untuk save lokal (Android & Windows).
   await Hive.initFlutter();
   final saveRepository = SaveRepository();
   await saveRepository.init();
 
-  // Efek suara (opsional — gagal pun game tetap jalan).
+  // Efek suara + musik latar (opsional — gagal pun game tetap jalan).
   await AudioSvc.instance.inisialisasi();
+  await AudioSvc.instance.mulaiMusik();
 
   runApp(
     ProviderScope(

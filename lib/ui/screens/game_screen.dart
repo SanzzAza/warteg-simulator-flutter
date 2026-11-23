@@ -4,7 +4,6 @@ library;
 import 'dart:async';
 
 import 'package:flame/game.dart';
-import 'package:flutter/services.dart' show SystemChrome, SystemUiMode;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -18,6 +17,7 @@ import '../theme.dart';
 import '../widgets.dart';
 import 'menu_panel.dart';
 import 'report_panel.dart';
+import '../panel_route.dart';
 import 'settings_sheet.dart';
 import 'staff_panel.dart';
 import 'stock_panel.dart';
@@ -34,15 +34,12 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
   WartegGame? _game;
   GameController? _controller;
   DailyReport? _laporan;
-  String? _panelAktif;
   Timer? _timerToast;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    // Layar penuh (immersive) saat bermain.
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
     final controller = ref.read(gameControllerProvider.notifier);
     _controller = controller;
@@ -54,6 +51,12 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
     );
     controller.pesanToast.addListener(_toastListener);
     AudioSvc.instance.aktif = controller.stateSaatIni.settings.soundOn;
+    // Pastikan musik ikut aturan preferensi pemain saat masuk layar game.
+    if (controller.stateSaatIni.settings.soundOn) {
+      unawaited(AudioSvc.instance.mulaiMusik());
+    } else {
+      unawaited(AudioSvc.instance.hentikanMusik());
+    }
   }
 
   void _toastListener() {
@@ -83,7 +86,6 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
     // Simpan referensi controller di initState: `ref` tidak boleh dipakai
     // saat dispose.
     _controller?.pesanToast.removeListener(_toastListener);
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     super.dispose();
   }
 
@@ -95,9 +97,11 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
         state == AppLifecycleState.inactive ||
         state == AppLifecycleState.detached) {
       _game?.pauseSimulasi();
+      unawaited(AudioSvc.instance.hentikanMusik());
     } else if (state == AppLifecycleState.resumed) {
       // Tetap pause sampai pemain menekan Lanjutkan (mencegah waktu lompat).
       controller.setPause(true);
+      unawaited(AudioSvc.instance.lanjutkanMusik());
     }
   }
 
@@ -106,7 +110,10 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
       _konfirmasiTutupWarung();
       return;
     }
-    setState(() => _panelAktif = id);
+    final isi = _isiPanel(id);
+    if (isi == null) return;
+    // Panel dibuka sebagai route tersendiri: X hanya menutup panel.
+    unawaited(bukaPanel(context, ref, id, isi));
   }
 
   Future<void> _konfirmasiTutupWarung() async {
@@ -155,17 +162,13 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(gameControllerProvider);
-    final panel = _panelAktif;
-    final layar = MediaQuery.sizeOf(context);
-    final lebarPanel = layar.width < 640 ? layar.width : 430.0;
     final controller = ref.read(gameControllerProvider.notifier);
 
     return PopScope(
-      canPop: panel == null,
+      canPop: false,
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop && _panelAktif != null) {
-          setState(() => _panelAktif = null);
-        }
+        // Tombol back di HP: tawarkan sementara ke menu utama.
+        if (!didPop) _kembaliKeMenu();
       },
       child: Scaffold(
         body: Stack(
@@ -185,13 +188,26 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
                       const Positioned.fill(
                         child: IgnorePointer(child: _Vignette()),
                       ),
+                      // Tombol kecil (ikon saja) agar tidak menutupi permainan.
                       Positioned(
-                        left: 12,
-                        bottom: 12,
-                        child: StatusChip(
-                          icon: Icons.home_rounded,
-                          label: 'Menu Utama',
-                          onTap: _kembaliKeMenu,
+                        left: 8,
+                        bottom: 8,
+                        child: Tooltip(
+                          message: 'Menu Utama',
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(20),
+                            onTap: _kembaliKeMenu,
+                            child: Container(
+                              padding: const EdgeInsets.all(7),
+                              decoration: BoxDecoration(
+                                color: WartegColors.cream.withValues(alpha: 0.92),
+                                shape: BoxShape.circle,
+                                border: Border.all(color: const Color(0x33A8702F)),
+                              ),
+                              child: const Icon(Icons.home_rounded,
+                                  size: 16, color: WartegColors.brickDark),
+                            ),
+                          ),
                         ),
                       ),
                       // Overlay jeda: menutup area game saja agar HUD tetap aktif.
@@ -244,28 +260,6 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
                 ),
               ],
             ),
-            // Panel manajemen: sheet kanan di desktop, penuh di HP.
-            if (panel != null)
-              Positioned.fill(
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => setState(() => _panelAktif = null),
-                        child: Container(color: Colors.black26),
-                      ),
-                    ),
-                    SizedBox(
-                      width: lebarPanel,
-                      child: Material(
-                        color: WartegColors.creamDark,
-                        elevation: 12,
-                        child: SafeArea(left: false, child: _isiPanel(panel)),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             // Dialog laporan harian.
             if (_laporan != null)
               _dialogLaporan(_laporan!, () => setState(() => _laporan = null)),
@@ -275,7 +269,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
     );
   }
 
-  Widget _isiPanel(String id) {
+  Widget? _isiPanel(String id) {
     switch (id) {
       case 'menu':
         return const MenuPanel();
@@ -290,7 +284,7 @@ class _GameScreenState extends ConsumerState<GameScreen> with WidgetsBindingObse
       case 'pengaturan':
         return const PengaturanSheet();
       default:
-        return const SizedBox.shrink();
+        return null;
     }
   }
 

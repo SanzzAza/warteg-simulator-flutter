@@ -57,7 +57,7 @@ flutter build windows --release
 ```
 
 **Catatan validasi**: proyek ini diverifikasi di lingkungan Linux dengan
-`flutter analyze` (bersih), `flutter test` (35 test lolos, termasuk smoke test
+`flutter analyze` (bersih), `flutter test` (40 test lolos, termasuk smoke test
 layar game + Flame), dan render PNG nyata dari widget/Flame. Build APK/AAB
 maupun Windows perlu dijalankan di mesin dengan Android SDK / Visual Studio
 sesuai perintah di atas (sandbox pembuat proyek tidak menyediakan keduanya).
@@ -68,7 +68,7 @@ default sudah memakai debug key sehingga APK bisa langsung dipasang.
 ### Menjalankan test
 ```bash
 flutter analyze     # harus "No issues found!"
-flutter test        # 35 unit/widget test
+flutter test        # 40 unit/widget test
 flutter test test/preview_capture.dart  # (opsional) render PNG ke design/
 ```
 
@@ -98,6 +98,22 @@ langsung diinstal untuk tes. Untuk rilis Play Store, tambahkan keystore sendiri
 lewat GitHub Secrets (`KEYSTORE_BASE64`, `KEY_PROPERTIES`) lalu ubah langkah
 build sesuai dokumentasi Flutter.
 
+
+## 1c. Perubahan v1.1.0 (dari masukan pemain)
+
+| Masalah | Perbaikan |
+| --- | --- |
+| Tombol **X** di panel membuat aplikasi kembali ke menu utama | Panel dibuka sebagai **route tersendiri**; X hanya menutup panel (`lib/ui/panel_route.dart`). Simulasi otomatis dijedakan selama panel terbuka, lalu lanjut lagi |
+| Panel **Stok** tampil abu-abu / kosong | Dua bug diperbaiki: parameter `state` tak bertipe menyebabkan `_TypeError` pada `sort` batch, dan baris "Jumlah beli" overflow di layar sempit (kini `Wrap`) |
+| Pelanggan tidak pernah terlihat | Peluang datang dinaikkan (0.025 → 0.18/menit) + batas jeda maksimum 22 menit game + **2–3 pelanggan sudah menunggu saat warung buka**. Etalase kini terisi 22 porsi saat Game Baru, kapasitas dasar 24 porsi (+6/level etalase) |
+| Etalase cepat kosong lalu pelanggan kabur | Pemilik warung otomatis memasak 2 porsi menu termurah bila etalase ≤ 2 porsi, plus peringatan "etalase hampir kosong" dan "bahan habis" |
+| Tidak ada musik | Musik latar 12,6 detik ber-loop (`assets/audio/bgm_warung.wav`) dimainkan via `flame_audio` BGM, otomatis pause saat app ke background, ikut tombol Suara di Pengaturan |
+| Belum landscape | Android dikunci `sensorLandscape` + `setPreferredOrientations`; HUD dipadatkan (label pendek) untuk layar HP mendatar; jendela Windows default 1280×720 |
+
+Bukti uji: `flutter test` 40 test lolos, termasuk `test/panels_landscape_test.dart`
+yang membuka kelima panel di layar 892×412 dan memastikan tombol X **tidak**
+menutup layar permainan.
+
 ## 2. Cara Bermain (Bahasa Indonesia)
 
 1. **Game Baru** memberi modal **Rp2.000.000** dan stok bahan awal.
@@ -124,6 +140,9 @@ build sesuai dokumentasi Flutter.
    **minuman panas** (teh hangat, kopi tubruk) lebih diminati.
 10. **Reputasi bintang** naik dari kepuasan pelanggan, dan **XP/level** membuka
     menu baru (rendang di level 4, dll.) serta upgrade tertentu.
+
+Saat game baru dimulai, warung sudah dalam keadaan **buka dengan 22 porsi lauk
+siap jual** dan 2–3 pelanggan menunggu — langsung bisa melayani.
 
 Game **autosave** setiap 30 detik, saat aplikasi ke background, saat tutup
 warung, dan saat kembali ke menu. Tombol **Lanjutkan** di menu utama memuat

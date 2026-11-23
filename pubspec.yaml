@@ -1,7 +1,7 @@
 name: warteg_simulator
 description: "Warteg Simulator — game simulasi warung tegal khas Indonesia. Kelola modal, masak, layani pelanggan, rekrut karyawan, dan kembangkan usaha."
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.1.0+2
 
 environment:
   sdk: '>=3.3.0 <4.0.0'

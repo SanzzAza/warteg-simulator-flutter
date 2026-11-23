@@ -13,6 +13,7 @@ class AudioSvc {
   static final AudioSvc instance = AudioSvc._();
 
   bool _siap = false;
+  bool _bgmSiap = false;
   bool aktif = true;
 
   /// Muat semua efek suara ke cache (dipanggil sekali di main).
@@ -20,8 +21,10 @@ class AudioSvc {
     try {
       await FlameAudio.audioCache.loadAll([
         for (final nama in _file.values) 'audio/$nama',
+        'audio/bgm_warung.wav',
       ]);
       _siap = true;
+      _bgmSiap = true;
     } catch (e) {
       debugPrint('Audio tidak tersedia: $e');
       _siap = false;
@@ -45,6 +48,37 @@ class AudioSvc {
       FlameAudio.play('audio/$file', volume: 0.6);
     } catch (e) {
       debugPrint('Gagal memutar $nama: $e');
+    }
+  }
+
+  /// Musik latar loop. Aman dipanggil berulang (tidak menumpuk).
+  Future<void> mulaiMusik() async {
+    if (!_siap || !_bgmSiap) return;
+    if (FlameAudio.bgm.isPlaying) return;
+    try {
+      await FlameAudio.bgm.initialize();
+      await FlameAudio.bgm.play('audio/bgm_warung.wav', volume: 0.32);
+    } catch (e) {
+      debugPrint('BGM gagal diputar: $e');
+    }
+  }
+
+  /// Hentikan musik (mis. saat app ke background / pemain matikan suara).
+  Future<void> hentikanMusik() async {
+    try {
+      if (FlameAudio.bgm.isPlaying) await FlameAudio.bgm.pause();
+    } catch (_) {
+      // abaikan: audio opsional
+    }
+  }
+
+  Future<void> lanjutkanMusik() async {
+    if (!aktif) return;
+    try {
+      if (FlameAudio.bgm.isPlaying) return;
+      await FlameAudio.bgm.resume();
+    } catch (_) {
+      await mulaiMusik();
     }
   }
 

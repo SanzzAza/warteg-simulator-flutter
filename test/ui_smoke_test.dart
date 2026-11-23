@@ -28,6 +28,10 @@ void main() {
   });
 
   testWidgets('layar game merender Flame + HUD dan bisa dibuka panelnya', (tester) async {
+    // Layar lebar (desktop) agar HUD memakai label lengkap.
+    tester.view.physicalSize = const Size(1280, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
     await tester.pumpWidget(
       ProviderScope(
         overrides: [

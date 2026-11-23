@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/format.dart';
 import '../../data/models/menu_item.dart';
 import '../../features/game_controller.dart';
+import '../panel_route.dart';
 import '../theme.dart';
 import '../widgets.dart';
 
@@ -36,7 +37,7 @@ class _MenuPanelState extends ConsumerState<MenuPanel> {
           icon: Icons.restaurant_menu_rounded,
           title: 'Menu & Harga',
           subtitle: 'Harga murah = laris, tapi jaga margin',
-          onClose: () => Navigator.of(context).pop(),
+          onClose: () => tutupPanel(context),
         ),
         SizedBox(
           height: 40,
@@ -160,32 +161,34 @@ class _MenuPanelState extends ConsumerState<MenuPanel> {
                               ),
                             ],
                           ),
-                          Row(
+                          Wrap(
+                            alignment: WrapAlignment.spaceBetween,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            spacing: 6,
+                            runSpacing: 4,
                             children: [
-                              Expanded(
-                                child: Text(
-                                  'Margin ${rupiah(harga - m.modalBahan)}/porsi',
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontSize: 11.5,
-                                    fontWeight: FontWeight.w700,
-                                    color: harga - m.modalBahan > 0
-                                        ? WartegColors.green
-                                        : WartegColors.brick,
-                                  ),
+                              Text(
+                                'Margin ${rupiah(harga - m.modalBahan)}/porsi',
+                                style: TextStyle(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: harga - m.modalBahan > 0
+                                      ? WartegColors.green
+                                      : WartegColors.brick,
                                 ),
                               ),
-                              for (final n in [1, 3, 5])
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 6),
-                                  child: MiniButton(
-                                    label: '+$n',
-                                    icon: Icons.soup_kitchen_rounded,
-                                    aktif: !bahanKurang,
-                                    onPressed: () => controller.masak(m.id, n),
-                                  ),
-                                ),
+                              Wrap(
+                                spacing: 6,
+                                children: [
+                                  for (final n in [1, 3, 5])
+                                    MiniButton(
+                                      label: '+$n',
+                                      icon: Icons.soup_kitchen_rounded,
+                                      aktif: !bahanKurang,
+                                      onPressed: () => controller.masak(m.id, n),
+                                    ),
+                                ],
+                              ),
                             ],
                           ),
                           if (bahanKurang)

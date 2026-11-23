@@ -27,7 +27,7 @@ void main() {
       ..dailyServed = 12
       ..totalServed = 120
       ..menuPrices['nasi_putih'] = 6000;
-    asli.dishBatches.add(DishBatch(menuId: 'nasi_putih', qty: 3, freshness: 71.5));
+    asli.dishBatches.insert(0, DishBatch(menuId: 'nasi_putih', qty: 3, freshness: 71.5));
     asli.cookingQueue.add(
       CookingJob(menuId: 'ayam_goreng', portions: 2, progress: 3, totalMinutes: 30),
     );
@@ -111,6 +111,6 @@ void main() {
     };
     final state = GameState.fromMap(minimal);
     expect(state.money, 5000);
-    expect(state.displayCapacity, 6);
+    expect(state.displayCapacity, 24);
   });
 }

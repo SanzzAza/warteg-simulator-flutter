@@ -8,6 +8,7 @@ import '../../core/app_config.dart';
 import '../../core/format.dart';
 import '../../data/models/game_state.dart';
 import '../../features/game_controller.dart';
+import '../panel_route.dart';
 import '../theme.dart';
 import '../widgets.dart';
 
@@ -25,7 +26,7 @@ class ReportPanel extends ConsumerWidget {
           icon: Icons.receipt_long_rounded,
           title: 'Laporan Keuangan',
           subtitle: 'Hari ke-${state.day} • kas ${rupiah(state.money)}',
-          onClose: () => Navigator.of(context).pop(),
+          onClose: () => tutupPanel(context),
         ),
         Expanded(
           child: ListView(

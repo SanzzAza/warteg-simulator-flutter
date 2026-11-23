@@ -64,8 +64,9 @@ void main() {
     await _simpan(tester, 'design/preview_menu.png');
   });
 
-  testWidgets('capture layar game portrait (HP)', (tester) async {
-    tester.view.physicalSize = const Size(412, 892);
+  testWidgets('capture layar game landscape HP', (tester) async {
+    // HP 412x892 diputar menjadi 892x412 (landscape).
+    tester.view.physicalSize = const Size(892, 412);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
 
@@ -84,7 +85,7 @@ void main() {
     await tester.runAsync(() async {
       final image = await boundary.toImage(pixelRatio: 2.0);
       final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
-      await File('design/preview_portrait.png').writeAsBytes(bytes!.buffer.asUint8List());
+      await File('design/preview_landscape_hp.png').writeAsBytes(bytes!.buffer.asUint8List());
     });
   });
 

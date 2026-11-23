@@ -41,7 +41,7 @@ void main() {
 
   group('Memasak', () {
     test('memasak memakai bahan, butuh waktu, lalu masuk etalase', () {
-      final state = GameState.newGame();
+      final state = GameState.newGame()..dishBatches.clear();
       final berasAwal = state.stockOf('beras');
 
       final ok = economy.mulaiMasak(state, 'nasi_putih', 5);
@@ -74,16 +74,21 @@ void main() {
     });
 
     test('kapasitas etalase membatasi jumlah porsi', () {
-      final state = GameState.newGame();
-      // Kapasitas awal 6 porsi.
-      final cek = economy.cekMemasak(state, 'nasi_putih', 10);
+      final state = GameState.newGame()..dishBatches.clear();
+      // Kapasitas dasar 24 porsi; minta 30 -> harus ditolak.
+      expect(state.displayCapacity, 24);
+      final cek = economy.cekMemasak(state, 'nasi_putih', 30);
       expect(cek.bisa, isFalse);
       expect(cek.alasan, contains('Etalase penuh'));
+      // 10 porsi masih boleh.
+      expect(economy.cekMemasak(state, 'nasi_putih', 10).bisa, isTrue);
     });
 
     test('upgrade kompor mempercepat waktu masak', () {
-      final normal = GameState.newGame();
-      final cepat = GameState.newGame()..upgrades['kompor'] = 4;
+      final normal = GameState.newGame()..dishBatches.clear();
+      final cepat = GameState.newGame()
+        ..dishBatches.clear()
+        ..upgrades['kompor'] = 4;
 
       expect(economy.mulaiMasak(normal, 'nasi_putih', 2), isTrue);
       expect(economy.mulaiMasak(cepat, 'nasi_putih', 2), isTrue);
@@ -105,7 +110,7 @@ void main() {
     });
 
     test('ambilPorsi mengurangi etalase dan mengembalikan kesegaran', () {
-      final state = GameState.newGame();
+      final state = GameState.newGame()..dishBatches.clear();
       state.dishBatches.add(DishBatch(menuId: 'nasi_putih', qty: 3, freshness: 80));
       state.dishBatches.add(DishBatch(menuId: 'nasi_putih', qty: 2, freshness: 40));
 
@@ -118,7 +123,7 @@ void main() {
     });
 
     test('ambilPorsi mengembalikan kosong bila stok kurang', () {
-      final state = GameState.newGame();
+      final state = GameState.newGame()..dishBatches.clear();
       state.dishBatches.add(DishBatch(menuId: 'nasi_putih', qty: 1));
       expect(economy.ambilPorsi(state, 'nasi_putih', 2), isEmpty);
       expect(state.dishBatches.first.qty, 1);

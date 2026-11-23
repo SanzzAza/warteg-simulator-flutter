@@ -8,6 +8,7 @@ import '../../core/app_config.dart';
 import '../../core/format.dart';
 import '../../data/models/upgrade.dart';
 import '../../features/game_controller.dart';
+import '../panel_route.dart';
 import '../theme.dart';
 import '../widgets.dart';
 
@@ -25,7 +26,7 @@ class UpgradePanel extends ConsumerWidget {
           icon: Icons.auto_awesome_rounded,
           title: 'Upgrade & Ekspansi',
           subtitle: 'Uang: ${rupiah(state.money)} • Level ${state.level}',
-          onClose: () => Navigator.of(context).pop(),
+          onClose: () => tutupPanel(context),
         ),
         Expanded(
           child: ListView.builder(

@@ -36,7 +36,12 @@ const int kSelesaiMalam = 20 * 60;
 const double kFaktorRamaiMalam = 1.4;
 
 /// Peluang dasar satu pelanggan datang per menit game (sebelum pengali).
-const double kPeluangDatangPerMenit = 0.025;
+/// 0.18 ≈ satu pelanggan tiap ~5-6 menit game sebelum faktor keramaian.
+const double kPeluangDatangPerMenit = 0.18;
+
+/// Jarak maksimum antar kedatangan pelanggan (menit game) agar warung tidak
+/// pernah terasa kosong terlalu lama.
+const double kJedaMaksKedatangan = 22;
 
 /// Batas pelanggan aktif di warung (antre + makan).
 const int kBatasPelangganAktif = 14;

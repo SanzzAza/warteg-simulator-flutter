@@ -320,6 +320,16 @@ class GameState {
     return GameState(
       money: kModalAwal,
       menuPrices: prices,
+      // Warung sudah menyiapkan lauk sebelum buka: beberapa porsi siap jual
+      // supaya pelanggan pertama langsung bisa dilayani.
+      dishBatches: [
+        DishBatch(menuId: 'nasi_putih', qty: 6, freshness: 98),
+        DishBatch(menuId: 'orek_tempe', qty: 4, freshness: 95),
+        DishBatch(menuId: 'tempe_goreng', qty: 4, freshness: 96),
+        DishBatch(menuId: 'tahu_goreng', qty: 3, freshness: 96),
+        DishBatch(menuId: 'tumis_kangkung', qty: 3, freshness: 92),
+        DishBatch(menuId: 'es_teh', qty: 2, freshness: 99),
+      ],
       ingredientBatches: [
         IngredientBatch(ingredientId: 'beras', qty: 20, expiryDay: 30),
         IngredientBatch(ingredientId: 'tempe', qty: 10, expiryDay: 4),
@@ -443,7 +453,8 @@ class GameState {
   int upgradeLevel(String id) => upgrades[id] ?? 0;
 
   /// Kapasitas etalase (jumlah porsi masakan).
-  int get displayCapacity => 6 + upgradeLevel('etalase') * 4;
+  /// Dasar 24 porsi cukup untuk lauk pagi; tiap level etalase +6 porsi.
+  int get displayCapacity => 24 + upgradeLevel('etalase') * 6;
 
   /// Jumlah kursi pelanggan.
   int get seatCount => 4 + upgradeLevel('meja_kursi') * 3 + (branchCount > 1 ? 6 : 0);

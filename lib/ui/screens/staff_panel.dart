@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/format.dart';
 import '../../data/models/employee.dart';
 import '../../features/game_controller.dart';
+import '../panel_route.dart';
 import '../theme.dart';
 import '../widgets.dart';
 
@@ -26,7 +27,7 @@ class StaffPanel extends ConsumerWidget {
           icon: Icons.groups_rounded,
           title: 'Karyawan',
           subtitle: '${state.employees.length}/$batas orang • gaji ${rupiah(state.dailyWages)}/hari',
-          onClose: () => Navigator.of(context).pop(),
+          onClose: () => tutupPanel(context),
         ),
         Expanded(
           child: ListView(
