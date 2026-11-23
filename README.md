@@ -4,9 +4,9 @@ Game simulasi warung tegal khas Indonesia. Kelola modal, belanja bahan, masak,
 layani pelanggan, atur harga, rekrut karyawan, upgrade warung, dan kembangkan
 usaha dari warung kecil menjadi bisnis dua cabang.
 
-> **⬇️ Unduh cepat (rilis v1.0.0, hasil build CI):**
-> - Android: [warteg-simulator-v1.0.0.apk](https://github.com/SanzzAza/warteg-simulator-flutter/releases/download/v1.0.0/warteg-simulator-v1.0.0.apk)
-> - Windows: [warteg-simulator-v1.0.0-windows.zip](https://github.com/SanzzAza/warteg-simulator-flutter/releases/download/v1.0.0/warteg-simulator-v1.0.0-windows.zip)
+> **⬇️ Unduh cepat (rilis v1.1.0, hasil build CI):**
+> - Android: [warteg-simulator-v1.0.0.apk](https://github.com/SanzzAza/warteg-simulator-flutter/releases/download/v1.1.0/warteg-simulator-v1.1.0.apk)
+> - Windows: [warteg-simulator-v1.0.0-windows.zip](https://github.com/SanzzAza/warteg-simulator-flutter/releases/download/v1.1.0/warteg-simulator-v1.1.0-windows.zip)
 > - Semua rilis: https://github.com/SanzzAza/warteg-simulator-flutter/releases
 
 Dibuat dengan **Flutter (stable) + Dart null-safety**, **Flame** (render 2D),
@@ -108,7 +108,7 @@ build sesuai dokumentasi Flutter.
 | Pelanggan tidak pernah terlihat | Peluang datang dinaikkan (0.025 → 0.18/menit) + batas jeda maksimum 22 menit game + **2–3 pelanggan sudah menunggu saat warung buka**. Etalase kini terisi 22 porsi saat Game Baru, kapasitas dasar 24 porsi (+6/level etalase) |
 | Etalase cepat kosong lalu pelanggan kabur | Pemilik warung otomatis memasak 2 porsi menu termurah bila etalase ≤ 2 porsi, plus peringatan "etalase hampir kosong" dan "bahan habis" |
 | Tidak ada musik | Musik latar 12,6 detik ber-loop (`assets/audio/bgm_warung.wav`) dimainkan via `flame_audio` BGM, otomatis pause saat app ke background, ikut tombol Suara di Pengaturan |
-| Belum landscape | Android dikunci `sensorLandscape` + `setPreferredOrientations`; HUD dipadatkan (label pendek) untuk layar HP mendatar; jendela Windows default 1280×720 |
+| Belum landscape | Android dikunci `android:screenOrientation="landscape"` **di `<activity>`** (bukan `<application>`) + `setPreferredOrientations(landscapeLeft/Right)`; HUD dipadatkan (label pendek) untuk layar HP mendatar; jendela Windows default 1280×720 |
 
 Bukti uji: `flutter test` 40 test lolos, termasuk `test/panels_landscape_test.dart`
 yang membuka kelima panel di layar 892×412 dan memastikan tombol X **tidak**
