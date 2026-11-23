@@ -18,6 +18,8 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Game didesain untuk orientasi mendatar (landscape) di Android.
+  // Hanya dua orientasi mendatar (tidak termasuk landscape terbalik/upside
+  // down) supaya HP bisa dibalik kiri-kanan tanpa tampil terbalik.
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.landscapeLeft,
     DeviceOrientation.landscapeRight,
