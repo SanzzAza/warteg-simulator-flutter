@@ -4,6 +4,11 @@ Game simulasi warung tegal khas Indonesia. Kelola modal, belanja bahan, masak,
 layani pelanggan, atur harga, rekrut karyawan, upgrade warung, dan kembangkan
 usaha dari warung kecil menjadi bisnis dua cabang.
 
+> **⬇️ Unduh cepat (rilis v1.0.0, hasil build CI):**
+> - Android: [warteg-simulator-v1.0.0.apk](https://github.com/SanzzAza/warteg-simulator-flutter/releases/download/v1.0.0/warteg-simulator-v1.0.0.apk)
+> - Windows: [warteg-simulator-v1.0.0-windows.zip](https://github.com/SanzzAza/warteg-simulator-flutter/releases/download/v1.0.0/warteg-simulator-v1.0.0-windows.zip)
+> - Semua rilis: https://github.com/SanzzAza/warteg-simulator-flutter/releases
+
 Dibuat dengan **Flutter (stable) + Dart null-safety**, **Flame** (render 2D),
 **Riverpod** (state management), **Hive** (penyimpanan lokal), dan
 **flame_audio** (efek suara).
